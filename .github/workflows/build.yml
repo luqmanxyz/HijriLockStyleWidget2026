@@ -1,0 +1,48 @@
+name: Build Hijri Widget APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'HijriLockStyleWidget.zip'
+      - '.github/workflows/build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Unzip project
+        run: |
+          unzip -o HijriLockStyleWidget.zip -d project
+          cd project
+          echo "Project files:"
+          find . -maxdepth 3 -type f | sort
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Create Gradle wrapper
+        working-directory: project
+        run: gradle wrapper --gradle-version 8.9
+
+      - name: Build APK
+        working-directory: project
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: HijriLockStyleWidget-debug
+          path: project/app/build/outputs/apk/debug/app-debug.apk
